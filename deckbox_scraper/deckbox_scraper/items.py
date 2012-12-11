@@ -5,7 +5,15 @@
 
 from scrapy.item import Item, Field
 
-class DeckboxScraperItem(Item):
-    # define the fields for your item here like:
-    # name = Field()
-    pass
+class Card(Item):
+    # Defines a card
+    name = Field()
+    cardType = Field()
+    cost = Field()
+    price = Field()
+
+class Deck(Item):
+    title = Field()
+    legality = Field()
+    main_deck = []   # Array of cards
+    sideboard = []   # Array of cards
