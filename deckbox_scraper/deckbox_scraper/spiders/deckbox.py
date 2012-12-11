@@ -15,7 +15,6 @@ class DeckboxSpider(BaseSpider):
 
     # URLs
     login_url = "http://deckbox.org"
-    decks_url = "http://deckbox.org/"
 
     start_urls = [
         login_url
@@ -92,10 +91,46 @@ class DeckboxSpider(BaseSpider):
         if link:
             return Request(link.url, callback=self.parse_deck_links)
         else:
-            # Return combined data
+            # Persist combined data
             print self.decks
 
     def parse_deck(self, response):
-        print 'parsing deck!'
+        hxs = HtmlXPathSelector(response)
+
         # Parse and return a Deck
-        return {}
+        deck = {}
+        deck['title'] = hxs.select('//span[@class="section_title"]/text()').extract()
+        deck['main_deck'] = []
+        deck['sideboard'] = []
+
+        # Parse main deck
+        raw_main_deck = hxs.select('//div[@id="set_cards_table"]//tr[@id]')
+
+        for raw_card in raw_main_deck:
+            card = self.parse_card(raw_card)
+
+            # Add card to deck
+            deck['main_deck'].append(card)
+
+        # Parse sideboard
+        raw_sideboard = hxs.select('//div[@id="sideboard"]//tr[@id]')
+
+        for raw_card in raw_sideboard:
+            card = self.parse_card(raw_card)
+
+            # Add card to deck
+            deck['sideboard'].append(card)
+
+        return deck
+
+
+    def parse_card(self, raw_card):
+        # Parse card
+        card = {}
+        card['id'] = raw_card.select('@id').extract()[0]
+        card['name'] = raw_card.select('td[@class="card_name"]//a/text()').extract()[0]
+        card['cardType'] = raw_card.select('td[not(@*)]/span/text()').extract()[0]
+        card['rarity'] = raw_card.select('td[@class="mtg_rarity"]/img/@alt').extract()[0]
+        card['price'] = raw_card.select('td[contains(@class, "price")]/a/text()').extract()[0]
+
+        return card

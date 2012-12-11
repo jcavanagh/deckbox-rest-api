@@ -9,7 +9,7 @@ class Card(Item):
     # Defines a card
     name = Field()
     cardType = Field()
-    cost = Field()
+    rarity = Field()
     price = Field()
 
 class Deck(Item):
