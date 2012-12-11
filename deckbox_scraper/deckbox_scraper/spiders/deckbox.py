@@ -4,21 +4,16 @@ from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.selector import HtmlXPathSelector
 from scrapy.spider import BaseSpider
 
-from deckbox_scraper.items import Card, Deck
-
 class DeckboxSpider(BaseSpider):
     name = "deckbox"
     allowed_domains = ["deckbox.org"]
 
-    # Special set names which are structured as decks, but are not
-    special_set_names = ['Inventory', 'Tradelist', 'Wishlist']
-
-    # URLs
-    login_url = "http://deckbox.org"
-
     start_urls = [
-        login_url
+        "http://deckbox.org"
     ]
+
+    # Special set names which are structured as decks, but are not decks
+    special_set_names = ['Inventory', 'Tradelist', 'Wishlist']
 
     # Global spider data
     decks = {}
@@ -35,7 +30,7 @@ class DeckboxSpider(BaseSpider):
             self.log("Successfully logged in.")
         else:
             self.log("Login unsuccessful :(")
-            return False
+            return None
 
         return self.crawl_all(response)
 
@@ -71,8 +66,6 @@ class DeckboxSpider(BaseSpider):
             # Pull deck ID
             deck_id = response.url.rpartition('/')[2]
 
-            print deck_id
-
             # Process
             self.decks[deck_id] = self.parse_deck(response)
 
@@ -86,13 +79,11 @@ class DeckboxSpider(BaseSpider):
         while link and link.text in self.special_set_names:
             link = self.deck_links.pop(0)
 
-        print link
-
         if link:
             return Request(link.url, callback=self.parse_deck_links)
         else:
-            # Persist combined data
-            print self.decks
+            # TODO: Persist combined data
+            return None
 
     def parse_deck(self, response):
         hxs = HtmlXPathSelector(response)
@@ -122,7 +113,6 @@ class DeckboxSpider(BaseSpider):
             deck['sideboard'].append(card)
 
         return deck
-
 
     def parse_card(self, raw_card):
         # Parse card
