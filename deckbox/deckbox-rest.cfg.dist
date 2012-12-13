@@ -1,11 +1,12 @@
 # DB configuration
 [database]
-PSQL_HOST=localhost
-PSQL_PORT=5432
-PSQL_USER= 
-PSQL_PASS= 
+host=localhost
+port=5432
+user=
+pass=
+name=deckbox
 
-[bottle]
-# Bottle configuration
-BOTTLE_HOST=localhost
-BOTTLE_PORT=8081
+[server]
+# API server configuration
+host=0.0.0.0
+port=8081

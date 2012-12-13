@@ -12,5 +12,5 @@ config.readfp(open(CONFIG_FILE))
 def db(key):
     return config.get('database', key)
 
-def bottle(key):
-    return config.get('bottle', key)
+def server(key):
+    return config.get('server', key)

@@ -21,4 +21,4 @@ Execute deckbox-rest.py to start the server
     * sudo pip install sqlalchemy
 
 ### PostgreSQL ###
-* sudo apt-get install 
+* sudo apt-get install postgresql
