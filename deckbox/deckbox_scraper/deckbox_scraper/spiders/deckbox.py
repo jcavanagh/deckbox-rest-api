@@ -28,11 +28,10 @@ class DeckboxSpider(BaseSpider):
     def check_login_response(self, response):
         if self.is_authenticated(response):
             self.log("Successfully logged in.")
+            return self.crawl_all(response)
         else:
             self.log("Login unsuccessful :(")
             return None
-
-        return self.crawl_all(response)
 
     def login(self, response):
         # TODO: Get credentials from config

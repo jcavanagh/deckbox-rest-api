@@ -1,0 +1,11 @@
+# DB configuration
+[database]
+PSQL_HOST=localhost
+PSQL_PORT=5432
+PSQL_USER= 
+PSQL_PASS= 
+
+[bottle]
+# Bottle configuration
+BOTTLE_HOST=localhost
+BOTTLE_PORT=8081

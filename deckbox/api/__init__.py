@@ -1,0 +1,1 @@
+# This package contains the REST endpoints for deckbox-scraper
