@@ -2,13 +2,7 @@
 
 A simple REST API for deckbox.org.  Authenticates and scrapes deck data, then makes the data available via REST.
 
-* PostgreSQL
-
-## Usage ##
-
-Execute deckbox-rest.py to start the server
-
-## Setup ##
+## Setup / Prerequisites ##
 
 ### Python ###
 * Python 2.7.3 / pip
@@ -22,3 +16,12 @@ Execute deckbox-rest.py to start the server
 
 ### PostgreSQL ###
 * sudo apt-get install postgresql
+
+### Configuration and Installation ###
+* Install prerequisites, as listed above
+* Create an empty PostgreSQL database and standard user
+* Rename deckbox-rest.cfg.dist to deckbox-rest.cfg.  Fill out all relevant database information with the db/user you just created.  Change the local REST API server port if desired.
+
+## Usage ##
+
+Execute deckbox-rest.py to start the server

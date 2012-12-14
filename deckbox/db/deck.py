@@ -10,10 +10,9 @@ class Deck(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     json = Column(Text)
 
-    def __init__(self, username, password, salt):
-        self.username = username
-        self.password = password
-        self.salt = salt
+    def __init__(self, user_id, json):
+        self.user_id = user_id
+        self.json = json
 
     def __repr__():
         return "<Deck('%s')>" % (self.id)

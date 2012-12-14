@@ -1,12 +1,11 @@
 #!/usr/bin/python
 from bottle import run
+
+import deckbox
 from deckbox.util import config
-
-# Import API
 from deckbox.api import deckbox
-
-# DB
 from deckbox.db import db
+
 db.init_db()
 
 # Start Bottle

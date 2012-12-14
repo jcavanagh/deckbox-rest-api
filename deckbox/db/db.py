@@ -5,6 +5,8 @@ from deckbox.db import Base, user, deck
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+Session = None
+
 def init_db():
     # Create DB engine
     engine = create_engine(
@@ -15,4 +17,8 @@ def init_db():
     # Init database
     Base.metadata.create_all(engine)
 
-    session = sessionmaker(bind=engine)
+    global Session
+    Session = sessionmaker(bind=engine)
+
+def create_session():
+    return Session()
