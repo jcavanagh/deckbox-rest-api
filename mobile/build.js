@@ -19,12 +19,19 @@
         ,rootPath = path.resolve(__dirname);
 
     //Paths
+    //Phonegap
+    var PHONEGAP_VERSION = '2.2.0';
+
     //Directories
     var SRC_DIR = path.join(rootPath, 'src')
         ,BUILD_DIR = path.join(SRC_DIR, 'build')
-        ,BUILD_ASSETS = path.join(BUILD_DIR, 'default', 'production')
+        ,VENDOR_DIR = path.join(rootPath, 'vendor')
         ,PHONEGAP_DIR = path.join(rootPath, 'phonegap')
-        ,ANDROID_WWW_DIR = path.join(PHONEGAP_DIR, 'android', 'assets', 'www');
+        ,BUILD_ASSETS_DIR = path.join(BUILD_DIR, 'default', 'production')
+        ,PHONEGAP_VENDOR_DIR = path.join(VENDOR_DIR, 'phonegap')
+        ,PHONEGAP_JS_FILENAME = 'cordova-' + PHONEGAP_VERSION + '.js'
+        ,ANDROID_WWW_DIR = path.join(PHONEGAP_DIR, 'android', 'assets', 'www')
+        ,ANDROID_PHONEGAP_JS = path.join(PHONEGAP_VENDOR_DIR, 'lib', 'android', PHONEGAP_JS_FILENAME);
 
     //Sencha tooling
     var SENCHA_CMD_LINUX64 = path.join(rootPath, 'vendor', 'sencha-cmd', 'linux64')
@@ -67,7 +74,10 @@
         //Create a simple default callback that will log an error if we get one
         var cb = cb || function(err){ if(!!err) { console.log(err); } };
 
-        //Copy Android
-        fsx.copy(BUILD_ASSETS, ANDROID_WWW_DIR)
+        //Copy Android assets
+        fsx.copy(BUILD_ASSETS_DIR, ANDROID_WWW_DIR, function() {
+            //Copy platform Phonegap JS after base assets
+            fsx.copy(ANDROID_PHONEGAP_JS, path.join(ANDROID_WWW_DIR, PHONEGAP_JS_FILENAME), cb);
+        });
     }
 })();
