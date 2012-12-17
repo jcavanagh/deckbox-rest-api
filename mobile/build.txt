@@ -1,0 +1,14 @@
+PREREQUISITES
+- Sencha Cmd requires Java 6 or higher
+- Compass for SASS
+- 64-bit Linux users may need to install 32-bit libraries for Node if it complains about loading shared libraries (sudo apt-get install ia32-libs)
+- Required Node modules
+  - path
+  - fs
+  - util
+  - fs-extra
+
+BUILD
+- Execute build.sh (Linux/Mac) or build.bat (Windows)
+- Project will build, and final build artifacts will be in js/mobile/build
+    - The build script will copy the minifed app.js from the build dir to app.min.js in the source dir.  app.min.js is the only file that should be referenced in index.html.
