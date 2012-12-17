@@ -3,7 +3,7 @@ import ConfigParser
 import os
 
 # Config
-CONFIG_FILE = os.path.join(os.path.dirname(__file__), '..', 'deckbox-rest.cfg')
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), '..', '..', 'deckbox-rest.cfg')
 
 # Load config
 config = ConfigParser.ConfigParser()
