@@ -2,7 +2,7 @@
 
 A simple REST API for deckbox.org.  Authenticates and scrapes deck data, then makes the data available via REST.
 
-Includes a companion mobile application that makes use of the scraping backed.
+Includes a companion mobile application that makes use of the scraping backend.
 
 ## Setup / Prerequisites ##
 
