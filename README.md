@@ -10,7 +10,7 @@ A simple REST API for deckbox.org.  Authenticates and scrapes deck data, then ma
 * Bottle 0.10.11
     * sudo pip install bottle
 * Scrapy 0.16
-    * sudo pip install Scrapy
+    * sudo pip install scrapy
 * SQLAlchemy 0.7.9
     * sudo pip install sqlalchemy
 

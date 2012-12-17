@@ -20,7 +20,7 @@ def login():
             .filter(User.username == username)\
             .one()
 
-    # If we find no user, then we have abad username
+    # If we find no user, then we have a bad username
     if(user is None):
         abort(400, "Bad username or password")
 
@@ -54,10 +54,12 @@ def get_all_decks():
     if(auth_token is None):
         abort(401, "Bad session")
 
-    return session.query(User, Deck)\
+    decks = session.query(User, Deck)\
             .filter(User.session_id == auth_token)\
             .filter(User.id == Deck.user_id)\
             .all()
+
+    return json.dumps(decks)
 
 @get('/decks/<id>')
 def get_deck(id):
@@ -67,11 +69,13 @@ def get_deck(id):
     if(auth_token is None):
         abort(401, "Bad session")
 
-    return session.query(User, Deck)\
+    deck = session.query(User, Deck)\
             .filter(User.session_id == auth_token)\
             .filter(User.id == Deck.user_id)\
             .filter(Deck.id == id)\
             .one()
+
+    return json.dumps(deck)
 
 @post('/decks')
 def create_deck():
