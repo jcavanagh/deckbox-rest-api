@@ -19,6 +19,10 @@ class DeckboxSpider(BaseSpider):
     decks = {}
     deck_links = []
 
+    def __init__(self, deckbox_user, deckbox_pass):
+        self.username = deckbox_user
+        self.password = deckbox_pass
+
     def parse(self, response):
         if self.is_authenticated(response):
             return self.crawl_all(response)
@@ -27,10 +31,10 @@ class DeckboxSpider(BaseSpider):
 
     def check_login_response(self, response):
         if self.is_authenticated(response):
-            self.log("Successfully logged in.")
+            print "Successfully logged in."
             return self.crawl_all(response)
         else:
-            self.log("Login unsuccessful :(")
+            print "Login unsuccessful :("
             return None
 
     def login(self, response):
@@ -38,13 +42,13 @@ class DeckboxSpider(BaseSpider):
         # Find token
         hxs = HtmlXPathSelector(response)
         token = hxs.select('//input[@name="authenticity_token"]/@value').extract()[0]
-        self.log('Token: ' + token)
+        print 'Token: ' + token
 
         return FormRequest.from_response(response, 
             formdata = { 
                 'authenticity_token': token, 
-                'login': 'jcavanagh617@gmail.com', 
-                'password': '' 
+                'login': self.username, 
+                'password': self.password 
             }, 
             callback = self.check_login_response
         )
@@ -53,7 +57,7 @@ class DeckboxSpider(BaseSpider):
         return "Logout" in response.body
 
     def crawl_all(self, response):
-        self.log('Crawling all...')
+        print 'Crawling all...'
 
         # Get list of decks
         self.deck_links = SgmlLinkExtractor(allow = r'/sets/\d+').extract_links(response)

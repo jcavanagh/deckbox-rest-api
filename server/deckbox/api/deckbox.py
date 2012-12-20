@@ -1,102 +1,123 @@
 from bottle import get, post, put, delete, request, response, abort
-from ..db import user, deck
-from ..db.db import create_session
 
-import os, hashlib, json
+from ..db.user import User
+from ..db.deck import Deck
+from ..db import db
+
+from ..scraper import worker, deckbox
+
+import os, binascii, hashlib, json
 
 # Auth
 @post('/login')
 def login():
-    session = create_session()
+    username = request.forms.username
+    password = request.forms.password
 
-    username = request.query.username
-    password = request.query.password
+    return actual_login(username, password)
 
-    if(username is None or password is None):
+def actual_login(username, password):
+    if(not validate_present(username, password)):
         abort(400, "username and password must be specified")
 
-    # Get user
-    user = session.query(Users)\
-            .filter(User.username == username)\
-            .one()
+    session = db.create_session()
 
-    # If we find no user, then we have a bad username
+    # Get user
+    user = db.get_user(session, username)
+
     if(user is None):
-        abort(400, "Bad username or password")
+        abort(401, "Bad username or password")
 
     # Pull user data
     salt = user.salt
-    password = user.password
+    hashed_pass = user.password
 
     # Hash the submitted password
     new_hash_pass = hash_pass(password, salt)
 
     # Check it
-    if(hash_pass == new_hash_pass):
+    if(hashed_pass == new_hash_pass):
         # Create a session id and store
         session_id = get_session_id()
         user.session_id = session_id
         session.commit()
 
-    if(session_id is None):
+        response.set_cookie('session_id', session_id)
+    else:
         abort(401, "Bad username or password")
 
-    response.set_cookie('session_id', session_id)
-
     return "Login successful"
+
+# Scrape
+@get('/scrape/<username>')
+def scrape(username):
+    if(not validate_present(username)):
+        abort(400, "username must be specified")
+
+    session = db.create_session()
+
+    # Get user
+    user = db.get_user(session, username)
+
+    if(user is None):
+        abort(401, "Bad username or password")
+
+    # Start a scrape for the given user
+    crawler = worker.Worker(deckbox.DeckboxSpider, user.deckbox_username, user.deckbox_password)
+    crawler.crawl('deckbox')
 
 # Decks
 @get('/decks')
 def get_all_decks():
-    session = create_session()
-    auth_token = request.get_cookie('auth_token')
+    session_id = request.get_cookie('session_id')
 
-    if(auth_token is None):
+    if(not validate_present(session_id)):
         abort(401, "Bad session")
 
-    decks = session.query(User, Deck)\
-            .filter(User.session_id == auth_token)\
-            .filter(User.id == Deck.user_id)\
-            .all()
+    session = db.create_session()
+
+    decks = db.get_decks(session, user)
 
     return json.dumps(decks)
 
 @get('/decks/<id>')
 def get_deck(id):
-    session = create_session()
-    auth_token = request.get_cookie('auth_token')
+    session_id = request.get_cookie('session_id')
 
-    if(auth_token is None):
+    if(not validate_present(session_id)):
         abort(401, "Bad session")
 
-    deck = session.query(User, Deck)\
-            .filter(User.session_id == auth_token)\
-            .filter(User.id == Deck.user_id)\
-            .filter(Deck.id == id)\
-            .one()
+    session = db.create_session()
+
+    deck = db.get_deck()
 
     return json.dumps(deck)
 
 @post('/decks')
 def create_deck():
-    session = create_session()
-    auth_token = request.get_cookie('auth_token')
+    # Validate
+    json = request.forms.json
+    session_id = request.get_cookie('session_id')
 
-    if(auth_token is None):
-        abort(401, "Bad session")
+    if(not validate_present(session_id)):
+        abort(401, "No session")
 
-    json = request.query.json
-
-    # Get user ID
-    user_id = session.query(Users.id)\
-            .filter(User.username == username)\
-            .one()
-
-    if(json is None):
+    if(not validate_present(json)):
         abort(400, "json must be specified")
 
+    if(not validate_present(session_id)):
+        abort(401, "Bad session")
+
+    session = db.create_session()
+
+    # Get user ID
+    user = db.get_user_by_session(session, session_id)
+
+    if(user is None):
+        abort(401, "No user found for session")
+
     # Create deck
-    deck = Deck(user_id, json)
+    deck = Deck(user.id, json)
     session.add(deck)
     session.commit()
 
@@ -105,40 +126,51 @@ def create_deck():
 # Users
 @post('/users')
 def create_user():
-    session = create_session()
-
     # User attributes
-    username = request.query.username
-    password = request.query.password 
-    deckbox_username = request.query.deckbox_username
-    deckbox_password = request.query.deckbox_password
+    username = request.forms.username
+    password = request.forms.password 
+    deckbox_username = request.forms.deckbox_username
+    deckbox_password = request.forms.deckbox_password
 
     # Validate
-    if(username is None or password is None or deckbox_username is None or deckbox_password is None):
+    if(not validate_present(username, password, deckbox_username, deckbox_password)):
         abort(400, "All fields must be specified.")
 
+    session = db.create_session()
+
+    if(db.get_user(session, username) is not None):
+        # Login instead
+        actual_login(username, password)
+
+        return "Logged in successfully"
+
     # Generate salt and hash password
-    salt = os.urandom(32)
-    hash_pass = hash_pass(password, salt)
+    salt = binascii.b2a_hex(os.urandom(32))
+    hashed_pass = hash_pass(password, salt)
 
     # Create user
-    user = User(username, hash_pass, salt, deckbox_username, deckbox_password)
-
-    # Autologin and return session ID
-    session_id = actual_login(username, password)
-    user.session_id = get_session_id()
+    user = User(username, hashed_pass, salt, deckbox_username, deckbox_password)
     
     # Commit the new user
     session.add(user)
     session.commit()
 
-    response.set_cookie('session_id', session_id)
+    # Autologin and set session ID
+    actual_login(username, password)
 
     return "User " + username + " created successfully"
 
 # Utils
 def hash_pass(password, salt):
-    return hashlib.sha256(salt + hashlib.sha256(password))
+    return hashlib.sha256(salt + password).hexdigest()
 
 def get_session_id():
-    return os.urandom(64)
+    return binascii.b2a_hex(os.urandom(32))
+
+def validate_present(*args):
+    valid = True
+
+    for arg in args:
+        valid = valid & (arg != None and arg != '')
+
+    return valid

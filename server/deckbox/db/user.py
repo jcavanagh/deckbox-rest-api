@@ -8,8 +8,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     username = Column(String(128), unique=True)
-    password = Column(String(32))   #SHA-256
-    salt = Column(String(32))
+    password = Column(String(64))   #SHA-256
+    salt = Column(String(64))
 
     #FIXME: Implement actual session management with timeouts and other nice things
     session_id = Column(String(64))
